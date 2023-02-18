@@ -1,3 +1,16 @@
-if [[ {{AUTO_UPDATE}} == "1" ]]; then rm -rf webroot/; git clone https://{{USERNAME}}:{{ACCESS_TOKEN}}@github.com/{{USERNAME}}/{{GIT_ADDRESS}}.git webroot/; fi; {{STARTUP_CMD}};
+#!/bin/bash
+rm -rf /home/container/tmp/*
 
-if [[ ! -z ${COMPOSER_MODULES} ]]; then composer require ${COMPOSER_MODULES} --working-dir=/home/container/webroot; fi;
+# Check if php8-fpm is installed, and use php8.1-fpm as a fallback if it is not
+if command -v php8-fpm &> /dev/null; then
+    PHP_FPM_CMD="php8-fpm"
+else
+    PHP_FPM_CMD="php8.1-fpm"
+fi
+
+echo "⟳ Starting PHP-FPM using ${PHP_FPM_CMD}..."
+${PHP_FPM_CMD} --fpm-config /home/container/php-fpm/php-fpm.conf --daemonize
+
+echo "⟳ Starting Nginx..."
+echo "✓ Successfully started"
+/usr/sbin/nginx -c /home/container/nginx/nginx.conf -p /home/container/
